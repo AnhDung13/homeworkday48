@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
-export default function TodoForm({ handleAddTodo, setTodo, todo, search }) {
+export default function TodoForm({
+  handleAddTodo,
+  setTodo,
+  todo,
+  handleSearchTodo,
+}) {
   const [isSearching, setIsSearching] = useState(false);
   // switch to search
   const switchMode = () => {
@@ -14,14 +19,13 @@ export default function TodoForm({ handleAddTodo, setTodo, todo, search }) {
         <input
           type="text"
           value={todo}
-          // onChange={(e) => setTodo(e.target.value)}
-          onInput={
-            isSearching
-              ? (e) => {
-                  search(e.target.value);
+          onChange={
+            !isSearching
+              ? (e) => setTodo(e.target.value)
+              : (e) => {
+                  handleSearchTodo(e);
                   setTodo(e.target.value);
                 }
-              : (e) => setTodo(e.target.value)
           }
           placeholder={isSearching ? "Tìm kiếm todo" : "Thêm một việc làm mới"}
           className="bg-transparent border border-0 text-whites me-3 w-50"

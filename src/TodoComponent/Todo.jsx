@@ -16,19 +16,16 @@ export default function Todo({ setLoading }) {
   // get api key
   const getApiKey = async () => {
     const userEmail = prompt("nhập email", "example@example.com");
-    try {
-      const rs = await axiosInstance.get("/api-key", {
-        params: { email: userEmail },
-      });
-      // use js-cookie library to set api cookie and use info
-      Cookies.set("apiKey", `${rs.data.data.apiKey}`);
-      Cookies.set("userEmail", `${userEmail}`);
-      // call getTodo with api param for the first time render
-      getTodos(rs.data.data.apiKey);
-      toast.success(`Chào mừng bạn ${userEmail.split("@")[0]}`);
-    } catch {
-      toast.error("Email không tồn lại trong dữ liệu");
-    }
+
+    const rs = await axiosInstance.get("/api-key", {
+      params: { email: userEmail },
+    });
+    // use js-cookie library to set api cookie and use info
+    Cookies.set("apiKey", `${rs.data.data.apiKey}`);
+    Cookies.set("userEmail", `${userEmail}`);
+    // call getTodo with api param for the first time render
+    getTodos(rs.data.data.apiKey);
+    toast.success(`Chào mừng bạn ${userEmail.split("@")[0]}`);
   };
 
   // add todo
@@ -39,19 +36,16 @@ export default function Todo({ setLoading }) {
       toast.warning("Todo cần có trên 1 ký tự");
       return;
     }
-    try {
-      setLoading(true);
-      const rs = await axiosInstance.post("/todos", {
-        todo: todo,
-      });
-      await getTodos();
-      toast.success(`${rs.data.message}`);
-      setLoading(false);
-      // set isSeaching = false
-      callback(false);
-    } catch {
-      toast.error("Đã xảy ra lỗi");
-    }
+
+    setLoading(true);
+    // set isSeaching = false
+    callback(false);
+    const rs = await axiosInstance.post("/todos", {
+      todo: todo,
+    });
+    await getTodos();
+    toast.success(`${rs.data.message}`);
+    setLoading(false);
     setTodo("");
   };
 
@@ -60,31 +54,21 @@ export default function Todo({ setLoading }) {
     setLoading(true);
     // if pass Apikey call with this header
     if (apiKey) {
-      try {
-        const rs = await axiosInstance.get("/todos", {
-          headers: {
-            "X-Api-Key": apiKey,
-          },
-        });
-        setListTodos(rs.data.data.listTodo);
-      } catch (e) {
-        console.log(e);
-        toast.error("Đã xảy ra lỗi");
-      }
+      const rs = await axiosInstance.get("/todos", {
+        headers: {
+          "X-Api-Key": apiKey,
+        },
+      });
+      setListTodos(rs.data.data.listTodo);
     }
     // if not pass call this
     else {
-      try {
-        const rs = await axiosInstance.get("/todos", {
-          params: {
-            q: search,
-          },
-        });
-        setListTodos(rs.data.data.listTodo);
-      } catch (e) {
-        console.log(e);
-        toast.error("Đã xảy ra lỗi");
-      }
+      const rs = await axiosInstance.get("/todos", {
+        params: {
+          q: search,
+        },
+      });
+      setListTodos(rs.data.data.listTodo);
     }
     setLoading(false);
   };
@@ -94,43 +78,33 @@ export default function Todo({ setLoading }) {
     // onClick toast to delete
     toast.warning("Nhấn vào đây để xóa", {
       onClick: async () => {
-        try {
-          setLoading(true);
-          await axiosInstance.delete(`/todos/${id}`);
-          await getTodos();
-          setLoading(false);
-          toast.success("Xóa thành công");
-        } catch (e) {
-          console.log(e);
-          toast.error("Đã xảy ra lỗi");
-        }
+        setLoading(true);
+        await axiosInstance.delete(`/todos/${id}`);
+        await getTodos();
+        setLoading(false);
+        toast.success("Xóa thành công");
       },
     });
   };
 
   //upadte todo
   const handleUpdate = async (arr, id, callback) => {
-    try {
-      const updatedTodo = arr.find((todo) => todo.id === id);
-      await axiosInstance.patch(`/todos/${id}`, {
-        todo: updatedTodo.name,
-        isCompleted: updatedTodo.status,
-      });
-      await getTodos();
-      // remove updated todo
-      callback(arr.filter((todo) => todo.id !== id));
-      toast.success("Cập nhập thành công!");
-    } catch (e) {
-      console.log(e);
-      toast.error("Đã xảy ra lỗi");
-    }
+    const updatedTodo = arr.find((todo) => todo.id === id);
+    await axiosInstance.patch(`/todos/${id}`, {
+      todo: updatedTodo.name,
+      isCompleted: updatedTodo.status,
+    });
+    await getTodos();
+    // remove updated todo
+    callback(arr.filter((todo) => todo.id !== id));
+    toast.success("Cập nhập thành công!");
   };
 
   // searh todo
-  const handleSearchTodo = async (search) => {
-    await getTodos(null, search);
-  };
-  const search = debounce(handleSearchTodo);
+  const handleSearchTodo = debounce((e) => {
+    getTodos(null, e.target.value);
+  });
+
   // use effect
   useEffect(() => {
     if (Cookies.get(API_KEY)) {
@@ -158,7 +132,7 @@ export default function Todo({ setLoading }) {
             handleAddTodo={handleAddTodo}
             setTodo={setTodo}
             todo={todo}
-            search={search}
+            handleSearchTodo={handleSearchTodo}
           />
           <TodoLists
             listTodos={listTodos}
