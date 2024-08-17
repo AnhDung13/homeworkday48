@@ -8,23 +8,25 @@ import { API_KEY, USER_EMAIL } from "../config/token";
 import TodoLists from "./TodoLists";
 import axiosInstance from "../config/customAxios";
 import { debounce } from "../utils/utils";
+import axios from "axios";
+import { urlApi } from "../config/API";
 export default function Todo({ setLoading }) {
   //use state
   const [listTodos, setListTodos] = useState([]);
   const [todo, setTodo] = useState("");
-
   // get api key
   const getApiKey = async () => {
     const userEmail = prompt("nhập email", "example@example.com");
-
-    const rs = await axiosInstance.get("/api-key", {
+    const rs = await axios.get(`${urlApi}/api-key`, {
       params: { email: userEmail },
     });
+    console.log(rs);
+
     // use js-cookie library to set api cookie and use info
     Cookies.set("apiKey", `${rs.data.data.apiKey}`);
     Cookies.set("userEmail", `${userEmail}`);
     // call getTodo with api param for the first time render
-    getTodos(rs.data.data.apiKey);
+    await getTodos(rs.data.data.apiKey);
     toast.success(`Chào mừng bạn ${userEmail.split("@")[0]}`);
   };
 
@@ -36,7 +38,6 @@ export default function Todo({ setLoading }) {
       toast.warning("Todo cần có trên 1 ký tự");
       return;
     }
-
     setLoading(true);
     // set isSeaching = false
     callback(false);
@@ -52,24 +53,15 @@ export default function Todo({ setLoading }) {
   // get todos
   const getTodos = async (apiKey, search) => {
     setLoading(true);
-    // if pass Apikey call with this header
-    if (apiKey) {
-      const rs = await axiosInstance.get("/todos", {
-        headers: {
-          "X-Api-Key": apiKey,
-        },
-      });
-      setListTodos(rs.data.data.listTodo);
-    }
-    // if not pass call this
-    else {
-      const rs = await axiosInstance.get("/todos", {
-        params: {
-          q: search,
-        },
-      });
-      setListTodos(rs.data.data.listTodo);
-    }
+    const rs = await axiosInstance.get("/todos", {
+      headers: {
+        "X-Api-Key": apiKey,
+      },
+      params: {
+        q: search,
+      },
+    });
+    setListTodos(rs.data.data.listTodo);
     setLoading(false);
   };
 
@@ -102,7 +94,7 @@ export default function Todo({ setLoading }) {
 
   // searh todo
   const handleSearchTodo = debounce((e) => {
-    getTodos(null, e.target.value);
+    getTodos(Cookies.get(API_KEY), e.target.value);
   });
 
   // use effect
@@ -113,7 +105,7 @@ export default function Todo({ setLoading }) {
           Cookies.get(USER_EMAIL) ? Cookies.get(USER_EMAIL).split("@")[0] : ""
         }`
       );
-      getTodos();
+      getTodos(Cookies.get(API_KEY));
     } else {
       getApiKey();
     }
