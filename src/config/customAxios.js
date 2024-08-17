@@ -9,14 +9,14 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use(
-  (config) => {
+  (req) => {
     const apiKey = Cookies.get(API_KEY);
     if (apiKey) {
-      config.headers["X-Api-Key"] = apiKey;
+      req.headers["X-Api-Key"] = apiKey;
     }
-    return config;
+    return req;
   },
-  (error) => {
+  (err) => {
     return Promise.reject(error);
   }
 );
@@ -26,8 +26,8 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Cookies.remove("apiKey");
-      // Cookies.remove("userEmail");
+      Cookies.remove("apiKey");
+      Cookies.remove("userEmail");
       toast.error("Đã xảy ra lỗi vui lòng reload lại !");
     }
     return Promise.reject(error);
