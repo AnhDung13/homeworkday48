@@ -3,5 +3,8 @@ input::placeholder {
 }
 input:focus {
   outline: none !important;
-  color: white !important;
+  box-shadow: none !important;
+}
+label {
+  user-select: none !important;
 }
