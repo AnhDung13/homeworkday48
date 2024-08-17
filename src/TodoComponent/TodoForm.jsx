@@ -12,21 +12,20 @@ export default function TodoForm({
     setIsSearching(true);
     toast.success("Đã chuyển sang chế độ tìm kiếm");
   };
-
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setTodo(value);
+    if (isSearching) {
+      handleSearchTodo(e);
+    }
+  };
   return (
     <form className="w-50" onSubmit={(e) => handleAddTodo(e, setIsSearching)}>
       <div className="d-flex border-bottom border-success p-2 align-items-center justify-content-between">
         <input
           type="text"
           value={todo}
-          onChange={
-            !isSearching
-              ? (e) => setTodo(e.target.value)
-              : (e) => {
-                  handleSearchTodo(e);
-                  setTodo(e.target.value);
-                }
-          }
+          onChange={handleChange}
           placeholder={isSearching ? "Tìm kiếm todo" : "Thêm một việc làm mới"}
           className="bg-transparent border border-0 text-whites me-3 w-50"
           style={{ color: "white" }}
