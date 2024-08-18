@@ -16,18 +16,20 @@ export default function Todo({ setLoading }) {
   const [todo, setTodo] = useState("");
   // get api key
   const getApiKey = async () => {
-    const userEmail = prompt("nhập email", "example@example.com");
-    const rs = await axios.get(`${urlApi}/api-key`, {
-      params: { email: userEmail },
-    });
-    console.log(rs);
-
-    // use js-cookie library to set api cookie and use info
-    Cookies.set("apiKey", `${rs.data.data.apiKey}`);
-    Cookies.set("userEmail", `${userEmail}`);
-    // call getTodo with api param for the first time render
-    await getTodos(rs.data.data.apiKey);
-    toast.success(`Chào mừng bạn ${userEmail.split("@")[0]}`);
+    try {
+      const userEmail = prompt("nhập email", "example@example.com");
+      const rs = await axios.get(`${urlApi}/api-key`, {
+        params: { email: userEmail },
+      });
+      // use js-cookie library to set api cookie and use info
+      Cookies.set("apiKey", `${rs.data.data.apiKey}`);
+      Cookies.set("userEmail", `${userEmail}`);
+      // call getTodo with api param for the first time render
+      await getTodos(rs.data.data.apiKey);
+      toast.success(`Chào mừng bạn ${userEmail.split("@")[0]}`);
+    } catch {
+      toast.error(`Email không tồn tại trong dữ liệu`);
+    }
   };
 
   // add todo
@@ -82,6 +84,10 @@ export default function Todo({ setLoading }) {
   //upadte todo
   const handleUpdate = async (arr, id, callback) => {
     const updatedTodo = arr.find((todo) => todo.id === id);
+    if (updatedTodo.name.trim().length <= 1) {
+      toast.warning("Todo cần trên 1 ký tự");
+      return;
+    }
     await axiosInstance.patch(`/todos/${id}`, {
       todo: updatedTodo.name,
       isCompleted: updatedTodo.status,
